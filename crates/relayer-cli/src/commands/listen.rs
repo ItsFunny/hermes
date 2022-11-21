@@ -62,10 +62,10 @@ impl FromStr for EventFilter {
 pub struct ListenCmd {
     /// Identifier of the chain to listen for events from
     #[clap(
-        long = "chain",
-        required = true,
-        help_heading = "REQUIRED",
-        value_name = "CHAIN_ID"
+    long = "chain",
+    required = true,
+    help_heading = "REQUIRED",
+    value_name = "CHAIN_ID"
     )]
     chain_id: ChainId,
 
@@ -101,8 +101,7 @@ impl Runnable for ListenCmd {
 }
 
 /// Listen to events
-
-#[instrument(skip_all, level = "error", fields(chain = %config.id))]
+#[instrument(skip_all, level = "error", fields(chain = % config.id))]
 pub fn listen(config: &ChainConfig, filters: &[EventFilter]) -> eyre::Result<()> {
     let rt = Arc::new(TokioRuntime::new()?);
     let (event_monitor, rx) = subscribe(config, rt)?;
@@ -117,6 +116,9 @@ pub fn listen(config: &ChainConfig, filters: &[EventFilter]) -> eyre::Result<()>
     while let Ok(event_batch) = rx.recv() {
         match event_batch {
             Ok(batch) => {
+                for v in &batch.events{
+                    trace!("收到event,height:{},chainid:{},trackingId:{},events:{}",batch.height,batch.chain_id,batch.tracking_id,v);
+                }
                 let _span =
                     tracing::error_span!("event_batch", batch_height = %batch.height).entered();
 
@@ -154,7 +156,7 @@ fn subscribe(
         chain_config.websocket_addr.clone(),
         rt,
     )
-    .map_err(|e| eyre!("could not initialize event monitor: {}", e))?;
+        .map_err(|e| eyre!("could not initialize event monitor: {}", e))?;
 
     event_monitor
         .subscribe()
@@ -177,7 +179,7 @@ mod tests {
         assert_eq!(
             ListenCmd {
                 chain_id: ChainId::from_string("chain_id"),
-                events: vec!()
+                events: vec!(),
             },
             ListenCmd::parse_from(["test", "--chain", "chain_id"])
         )
@@ -188,7 +190,7 @@ mod tests {
         assert_eq!(
             ListenCmd {
                 chain_id: ChainId::from_string("chain_id"),
-                events: vec!(EventFilter::from_str("Tx").unwrap())
+                events: vec!(EventFilter::from_str("Tx").unwrap()),
             },
             ListenCmd::parse_from(["test", "--chain", "chain_id", "--events", "Tx"])
         )
@@ -202,7 +204,7 @@ mod tests {
                 events: vec!(
                     EventFilter::from_str("Tx").unwrap(),
                     EventFilter::from_str("NewBlock").unwrap()
-                )
+                ),
             },
             ListenCmd::parse_from([
                 "test", "--chain", "chain_id", "--events", "Tx", "--events", "NewBlock"
@@ -218,7 +220,7 @@ mod tests {
                 events: vec!(
                     EventFilter::from_str("Tx").unwrap(),
                     EventFilter::from_str("NewBlock").unwrap()
-                )
+                ),
             },
             ListenCmd::parse_from(["test", "--chain", "chain_id", "--events", "Tx", "NewBlock"])
         )
@@ -233,7 +235,7 @@ mod tests {
             "--events",
             "TestFilter"
         ])
-        .is_err())
+            .is_err())
     }
 
     #[test]

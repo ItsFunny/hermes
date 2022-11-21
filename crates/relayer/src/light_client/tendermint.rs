@@ -23,7 +23,7 @@ use ibc_relayer_types::{
     },
     downcast, Height as ICSHeight,
 };
-use tracing::trace;
+use tracing::{info, trace};
 
 use crate::{
     chain::cosmos::CosmosSdkChain, client_state::AnyClientState, config::ChainConfig, error::Error,
@@ -102,7 +102,7 @@ impl super::LightClient<CosmosSdkChain> for LightClient {
         client_state: &AnyClientState,
     ) -> Result<Option<MisbehaviourEvidence>, Error> {
         crate::time!("light client check_misbehaviour");
-
+        let v=update.header.clone().unwrap();
         let update_header = update.header.clone().ok_or_else(|| {
             Error::misbehaviour(format!(
                 "missing header in update client event {}",
@@ -110,6 +110,7 @@ impl super::LightClient<CosmosSdkChain> for LightClient {
             ))
         })?;
 
+        info!("v:{}",v.height());
         let update_header: &TmHeader =
             downcast_header(update_header.as_ref()).ok_or_else(|| {
                 Error::misbehaviour(format!(

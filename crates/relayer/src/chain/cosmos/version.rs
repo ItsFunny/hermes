@@ -114,7 +114,10 @@ fn parse_sdk_version(version_info: &VersionInfo) -> Result<semver::Version, Erro
     let module = version_info
         .build_deps
         .iter()
-        .find(|&m| m.path.contains(SDK_MODULE_NAME))
+        .find(|&m| {
+            // println!("{}", m.path.clone());
+            m.path.contains(SDK_MODULE_NAME)
+        })
         .ok_or_else(|| {
             Error::sdk_module_not_found(SDK_MODULE_NAME.to_string(), AppInfo::from(version_info))
         })?;
